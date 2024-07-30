@@ -1,0 +1,1 @@
+Implements a dummy ssh application for testing purposes

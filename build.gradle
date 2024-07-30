@@ -1,0 +1,67 @@
+plugins {
+    id 'groovy'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version '1.1.5'
+}
+
+group = 'net.jdresources'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(22)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.groovy:groovy'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation "commons-io:commons-io:2.15.1"
+    implementation 'org.apache.sshd:sshd-core:2.11.0'
+    implementation 'org.apache.sshd:sshd-sftp:2.11.0'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+project.ext.getSharedJvmArgs = { ->
+
+    List sharedJvmArgs = [
+            "-Djava.net.preferIPv4Stack=true",
+            "-Dspring.output.ansi.enabled=always",
+            "-Dfile.encoding=UTF-8",
+    ]
+
+    if (project.hasProperty("debug")) {
+        sharedJvmArgs << "-Xdebug"
+        sharedJvmArgs << "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+    }
+
+    if (project.hasProperty("debugWait")) {
+        sharedJvmArgs << "-Xdebug"
+        sharedJvmArgs << "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006"
+    }
+
+    sharedJvmArgs
+}
+
+bootRun {
+    doFirst {
+        jvmArgs = project.ext.getSharedJvmArgs()
+    }
+}
